@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Long Game Letter — Content Review Portal</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F0F2F5; color: #1B2A4A; }
+
+  /* Header */
+  .header { background: #1B2A4A; color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(0,0,0,0.3); }
+  .header-left h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
+  .header-left p { font-size: 12px; color: #F59E0B; margin-top: 2px; font-weight: 500; }
+  .approval-rule { background: #DC2626; color: white; font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 20px; letter-spacing: 0.5px; white-space: nowrap; }
+
+  /* Month Tabs */
+  .month-tabs { background: white; border-bottom: 2px solid #E5E7EB; padding: 0 24px; display: flex; gap: 0; overflow-x: auto; }
+  .tab { padding: 14px 20px; font-size: 14px; font-weight: 600; color: #6B7280; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.2s; }
+  .tab:hover { color: #1B2A4A; }
+  .tab.active { color: #1B2A4A; border-bottom-color: #F59E0B; }
+
+  /* Main */
+  .main { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+
+  /* Stats Bar */
+  .stats-bar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+  .stat-chip { background: white; border-radius: 10px; padding: 10px 16px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .stat-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-pending { background: #F59E0B; }
+  .dot-approved { background: #059669; }
+  .dot-revision { background: #DC2626; }
+  .dot-draft { background: #9CA3AF; }
+  .dot-published { background: #2563EB; }
+
+  /* Issue Card */
+  .issue-card { background: white; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); overflow: hidden; transition: box-shadow 0.2s; border: 2px solid transparent; }
+  .issue-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+  .issue-card.approved { border-color: #059669; }
+  .issue-card.revision { border-color: #DC2626; }
+
+  /* Card Header */
+  .card-header { padding: 20px 24px; cursor: pointer; display: flex; align-items: flex-start; gap: 16px; }
+  .issue-num { background: #1B2A4A; color: white; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; }
+  .card-header-middle { flex: 1; }
+  .card-date { font-size: 12px; color: #6B7280; font-weight: 500; margin-bottom: 4px; }
+  .card-title { font-size: 17px; font-weight: 700; color: #1B2A4A; line-height: 1.3; }
+  .card-hook { font-size: 13px; color: #6B7280; margin-top: 6px; font-style: italic; line-height: 1.5; }
+  .status-badge { flex-shrink: 0; padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; white-space: nowrap; }
+  .badge-pending { background: #FEF3C7; color: #92400E; }
+  .badge-approved { background: #D1FAE5; color: #065F46; }
+  .badge-revision { background: #FEE2E2; color: #991B1B; }
+  .badge-draft { background: #F3F4F6; color: #6B7280; }
+  .badge-published { background: #DBEAFE; color: #1E40AF; }
+
+  /* Expand toggle */
+  .expand-toggle { font-size: 20px; color: #9CA3AF; flex-shrink: 0; transition: transform 0.2s; }
+  .issue-card.expanded .expand-toggle { transform: rotate(180deg); }
+
+  /* Card Body */
+  .card-body { display: none; padding: 0 24px 24px; border-top: 1px solid #F3F4F6; }
+  .issue-card.expanded .card-body { display: block; }
+
+  /* Sections */
+  .section { margin-top: 20px; }
+  .section-label { font-size: 10px; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .section-label span { font-size: 14px; }
+  .section-content { font-size: 14px; color: #374151; line-height: 1.7; background: #F9FAFB; padding: 14px 16px; border-radius: 10px; border-left: 3px solid #E5E7EB; }
+  .section-content.faith { border-left-color: #F59E0B; background: #FFFBEB; }
+  .section-content.finance { border-left-color: #2563EB; background: #EFF6FF; }
+  .section-content.freedom { border-left-color: #059669; background: #ECFDF5; }
+  .section-content.action { border-left-color: #7C3AED; background: #F5F3FF; }
+
+  /* Approval section */
+  .approval-section { margin-top: 24px; padding-top: 20px; border-top: 2px dashed #E5E7EB; }
+  .approval-label { font-size: 12px; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+  .notes-area { width: 100%; min-height: 80px; padding: 12px; border: 2px solid #E5E7EB; border-radius: 10px; font-size: 14px; font-family: inherit; color: #374151; resize: vertical; transition: border-color 0.2s; }
+  .notes-area:focus { outline: none; border-color: #1B2A4A; }
+  .btn-row { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .btn { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+  .btn-approve { background: #059669; color: white; }
+  .btn-approve:hover { background: #047857; transform: translateY(-1px); }
+  .btn-revision { background: #FEF3C7; color: #92400E; border: 2px solid #F59E0B; }
+  .btn-revision:hover { background: #FDE68A; }
+  .btn-copy { background: #F3F4F6; color: #6B7280; border: 2px solid #E5E7EB; }
+  .btn-copy:hover { background: #E5E7EB; }
+  .approved-timestamp { font-size: 12px; color: #059669; font-weight: 600; margin-top: 10px; display: none; }
+
+  /* Research Notice */
+  .research-notice { background: linear-gradient(135deg, #1B2A4A 0%, #2563EB 100%); color: white; border-radius: 16px; padding: 20px 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 16px; }
+  .research-notice .icon { font-size: 32px; flex-shrink: 0; }
+  .research-notice h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .research-notice p { font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5; }
+
+  /* Empty month */
+  .coming-soon { background: white; border-radius: 16px; padding: 40px 24px; text-align: center; color: #9CA3AF; }
+  .coming-soon .icon { font-size: 40px; margin-bottom: 12px; }
+  .coming-soon h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; color: #6B7280; }
+
+  @media (max-width: 600px) {
+    .header { flex-direction: column; gap: 10px; text-align: center; }
+    .card-header { flex-wrap: wrap; }
+    .status-badge { order: -1; }
+    .btn-row { flex-direction: column; }
+    .btn { justify-content: center; }
+  }
+
+  @media print {
+    .btn-row, .notes-area, .approval-rule, .month-tabs { display: none; }
+    .card-body { display: block !important; }
+    .issue-card { break-inside: avoid; box-shadow: none; border: 1px solid #E5E7EB; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>✍️ The Long Game Letter</h1>
+    <p>Content Review Portal</p>
+  </div>
+  <div class="approval-rule">🔒 NOTHING PUBLISHES WITHOUT AL'S APPROVAL</div>
+</div>
+
+<div class="month-tabs" id="monthTabs"></div>
+
+<div class="main">
+  <div class="research-notice">
+    <div class="icon">🔬</div>
+    <div>
+      <h3>Research Phase In Progress</h3>
+      <p>Deep research running across Reddit, CNBC, CoStar, U-Haul migration data, YouTube, LinkedIn and more. Content is data-first — issues will be refined after research is complete before any draft is written.</p>
+    </div>
+  </div>
+
+  <div class="stats-bar" id="statsBar"></div>
+  <div id="issueList"></div>
+</div>
+
+<script>
+const contentCalendar = {
+  "March 2026": [
+    {
+      id: 1, issue: "#1", sendDate: "March 7, 2026",
+      title: "Why Most Wealth Advice Is Designed to Keep You Broke",
+      hook: "78% of millennials say they're financially stressed — yet this generation earns more than any before it. Something doesn't add up. Here's what nobody tells you.",
+      faith: "Proverbs 13:11 (KJV) — 'Wealth gotten by vanity shall be diminished: but he that gathereth by labour shall increase.' The Bible warned about get-rich-quick 3,000 years ago. Real wealth is built by hand, with patience.",
+      finance: "Most financial advice is built around activity — buy this, trade that. Real wealth is built around systems. The Long Game Stack: Skills → Active Income → Savings Rate → First Investment → Passive Cash Flow. The average millionaire has 7 income streams — but they built them one at a time.",
+      freedom: "Most people skip straight to passive income and wonder why it fails. Sequence matters more than speed.",
+      action: "Write down your #1 income skill. Is it growing? What's one thing you could do this week to sharpen it?",
+    },
+    {
+      id: 2, issue: "#2", sendDate: "March 14, 2026",
+      title: "The Lie Keeping You From Your First Real Estate Investment",
+      hook: "I used to think you needed $500K and a Harvard MBA to invest in real estate. Then I learned how syndications work — and everything changed.",
+      faith: "Luke 19:12-26 (KJV) — Parable of the Talents. The servant who buried his talent didn't lose it by bad investing — he lost it by doing nothing. Inaction has a cost. Stewardship requires movement.",
+      finance: "Real estate creates 4 simultaneous returns: Cash flow (monthly income), Appreciation (value over time), Equity paydown (tenants pay your mortgage), Tax benefits (depreciation). Multifamily real estate has delivered avg annual returns of 9.75% over 20 years (NCREIF Property Index).",
+      freedom: "How syndications work: Sponsor finds the deal → Investors pool capital (min $25K-$100K) → Returns distributed quarterly. You're passive. They operate. You don't need to be a landlord to own real estate.",
+      action: "Research one Sunbelt market (Phoenix, Dallas, Nashville, Tampa). Look at population growth + rent trends over last 3 years.",
+    },
+    {
+      id: 3, issue: "#3", sendDate: "March 21, 2026",
+      title: "The Millennial Housing Trap (And How to Escape It)",
+      hook: "Millennials are the first generation in American history to rent more than own. Is that a crisis — or is everyone just asking the wrong question?",
+      faith: "Psalm 37:7 (KJV) — 'Rest in the LORD, and wait patiently for him.' The pressure to buy right now — at any cost — isn't wisdom. It's fear. Patience in big financial decisions is a spiritual discipline.",
+      finance: "National median home price ~$425K. 20% down = $85K upfront. Monthly payment at 7%: ~$2,840+ taxes. National median 2BR rent: ~$1,750. Real question: what would $85K do in a multifamily deal over 5 years?",
+      freedom: "The Ownership Trap: People buy homes to feel stable, then end up house-poor. Alternative: Rent strategically → Invest the difference → Build passive income → Buy when math makes sense, not emotion.",
+      action: "Calculate: If your potential down payment invested at 8% annually — what is it worth in 5 years vs. home equity in your market?",
+    },
+    {
+      id: 4, issue: "#4", sendDate: "March 28, 2026 🐣",
+      title: "The Resurrection Principle — How to Rebuild After Financial Failure",
+      hook: "Before I was an investor, I failed. Multiple times. This Easter, I want to talk about why failure isn't the end of your financial story.",
+      faith: "Romans 8:28 (KJV) — 'And we know that all things work together for good to them that love God.' The resurrection is a pattern: Loss. Silence. Return. God's fingerprint on every comeback story.",
+      finance: "67% of self-made millionaires experienced at least one major financial failure before breakthrough. The Comeback Framework: 1) Audit — numbers only. 2) Learn — one principle. 3) Reset — income first. 4) Re-enter — same game, better playbook.",
+      freedom: "The mental shift that separates those who recover from those who don't: separating identity from outcome. 'I failed at this investment' vs. 'I am a failure.'",
+      action: "Write down one past financial mistake: what happened, what you lost, what you learned, what you'd do differently. That document is worth more than any course.",
+    }
+  ],
+  "April 2026": [
+    {
+      id: 5, issue: "#5", sendDate: "April 4, 2026",
+      title: "How to Build Your First $10K in 12 Months (Step-by-Step)",
+      hook: "Pending deep research — topic confirmed, content being developed.",
+      faith: "⏳ Pending research phase", finance: "⏳ Pending research phase",
+      freedom: "⏳ Pending research phase", action: "⏳ Pending research phase",
+    },
+    {
+      id: 6, issue: "#6", sendDate: "April 11, 2026",
+      title: "What Nobody Tells You About Passive Income",
+      hook: "Pending deep research — topic confirmed, content being developed.",
+      faith: "⏳ Pending research phase", finance: "⏳ Pending research phase",
+      freedom: "⏳ Pending research phase", action: "⏳ Pending research phase",
+    },
+    {
+      id: 7, issue: "#7", sendDate: "April 18, 2026",
+      title: "The 5 Biblical Principles of Wealth Nobody Teaches in Church",
+      hook: "Pending deep research — topic confirmed, content being developed.",
+      faith: "⏳ Pending research phase", finance: "⏳ Pending research phase",
+      freedom: "⏳ Pending research phase", action: "⏳ Pending research phase",
+    },
+    {
+      id: 8, issue: "#8", sendDate: "April 25, 2026",
+      title: "How to Think About Risk Like a Real Investor",
+      hook: "Pending deep research — topic confirmed, content being developed.",
+      faith: "⏳ Pending research phase", finance: "⏳ Pending research phase",
+      freedom: "⏳ Pending research phase", action: "⏳ Pending research phase",
+    }
+  ],
+  "May 2026": []
+};
+
+// Load saved state
+function getState(id) {
+  const saved = localStorage.getItem('issue_' + id);
+  return saved ? JSON.parse(saved) : { status: id <= 4 ? 'PENDING REVIEW' : 'DRAFT', notes: '', timestamp: null };
+}
+function saveState(id, state) {
+  localStorage.setItem('issue_' + id, JSON.stringify(state));
+}
+
+function statusBadgeClass(status) {
+  return { 'PENDING REVIEW': 'badge-pending', 'APPROVED': 'badge-approved', 'REVISION NEEDED': 'badge-revision', 'DRAFT': 'badge-draft', 'PUBLISHED': 'badge-published' }[status] || 'badge-draft';
+}
+
+function renderStats(month) {
+  const issues = contentCalendar[month] || [];
+  const counts = { 'PENDING REVIEW': 0, 'APPROVED': 0, 'REVISION NEEDED': 0, 'DRAFT': 0, 'PUBLISHED': 0 };
+  issues.forEach(i => { const s = getState(i.id); counts[s.status] = (counts[s.status] || 0) + 1; });
+  const statsBar = document.getElementById('statsBar');
+  statsBar.innerHTML = Object.entries(counts).filter(([,v]) => v > 0).map(([k, v]) =>
+    `<div class="stat-chip"><div class="stat-dot dot-${k.toLowerCase().replace(' ', '-').replace(' ', '-')}"></div>${v} ${k}</div>`
+  ).join('');
+  // Fix dot class names
+  statsBar.querySelectorAll('.stat-dot').forEach(dot => {
+    const text = dot.nextSibling.textContent.trim().split(' ').slice(1).join(' ');
+    dot.className = 'stat-dot dot-' + text.toLowerCase().replace(' ', '-').replace('needed', 'revision').replace('review', 'pending').replace('pending review', 'pending').replace('revision needed', 'revision');
+  });
+}
+
+function renderIssues(month) {
+  const issues = contentCalendar[month] || [];
+  const list = document.getElementById('issueList');
+  if (!issues.length) {
+    list.innerHTML = `<div class="coming-soon"><div class="icon">📅</div><h3>Coming Soon</h3><p>Content for ${month} will be added after research is complete.</p></div>`;
+    return;
+  }
+  list.innerHTML = issues.map(issue => {
+    const state = getState(issue.id);
+    const badgeClass = statusBadgeClass(state.status);
+    const cardClass = state.status === 'APPROVED' ? 'approved' : state.status === 'REVISION NEEDED' ? 'revision' : '';
+    return `
+    <div class="issue-card ${cardClass}" id="card-${issue.id}">
+      <div class="card-header" onclick="toggleCard(${issue.id})">
+        <span class="issue-num">${issue.issue}</span>
+        <div class="card-header-middle">
+          <div class="card-date">📅 ${issue.sendDate}</div>
+          <div class="card-title">${issue.title}</div>
+          <div class="card-hook">${issue.hook}</div>
+        </div>
+        <span class="status-badge ${badgeClass}">${state.status}</span>
+        <span class="expand-toggle">⌄</span>
+      </div>
+      <div class="card-body">
+        <div class="section">
+          <div class="section-label"><span>✝️</span> Faith Insight</div>
+          <div class="section-content faith">${issue.faith}</div>
+        </div>
+        <div class="section">
+          <div class="section-label"><span>📊</span> Finance / Real Estate Insight</div>
+          <div class="section-content finance">${issue.finance}</div>
+        </div>
+        <div class="section">
+          <div class="section-label"><span>🗺️</span> Freedom Framework</div>
+          <div class="section-content freedom">${issue.freedom}</div>
+        </div>
+        <div class="section">
+          <div class="section-label"><span>⚡</span> Long Game Action</div>
+          <div class="section-content action">${issue.action}</div>
+        </div>
+        <div class="approval-section">
+          <div class="approval-label">📝 Your Notes / Feedback</div>
+          <textarea class="notes-area" id="notes-${issue.id}" placeholder="Leave feedback, changes, or just 'approved as-is'...">${state.notes}</textarea>
+          <div class="btn-row">
+            <button class="btn btn-approve" onclick="approveIssue(${issue.id})">✅ APPROVE</button>
+            <button class="btn btn-revision" onclick="requestRevision(${issue.id})">🔁 REQUEST REVISION</button>
+            <button class="btn btn-copy" onclick="copyFeedback(${issue.id})">📋 Copy Feedback</button>
+          </div>
+          <div class="approved-timestamp" id="ts-${issue.id}">${state.timestamp ? '✅ Approved: ' + state.timestamp : ''}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Show timestamps for approved
+  issues.forEach(i => {
+    const state = getState(i.id);
+    if (state.timestamp) { const el = document.getElementById('ts-'+i.id); if (el) el.style.display = 'block'; }
+  });
+
+  renderStats(month);
+}
+
+function toggleCard(id) {
+  const card = document.getElementById('card-' + id);
+  card.classList.toggle('expanded');
+}
+
+function approveIssue(id) {
+  const notes = document.getElementById('notes-' + id).value;
+  const ts = new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  saveState(id, { status: 'APPROVED', notes, timestamp: ts });
+  const card = document.getElementById('card-' + id);
+  card.className = 'issue-card expanded approved';
+  card.querySelector('.status-badge').textContent = 'APPROVED';
+  card.querySelector('.status-badge').className = 'status-badge badge-approved';
+  const tsEl = document.getElementById('ts-' + id);
+  tsEl.textContent = '✅ Approved: ' + ts;
+  tsEl.style.display = 'block';
+  renderStats(currentMonth);
+}
+
+function requestRevision(id) {
+  const notes = document.getElementById('notes-' + id).value;
+  saveState(id, { status: 'REVISION NEEDED', notes, timestamp: null });
+  const card = document.getElementById('card-' + id);
+  card.className = 'issue-card expanded revision';
+  card.querySelector('.status-badge').textContent = 'REVISION NEEDED';
+  card.querySelector('.status-badge').className = 'status-badge badge-revision';
+  renderStats(currentMonth);
+}
+
+function copyFeedback(id) {
+  const issue = Object.values(contentCalendar).flat().find(i => i.id === id);
+  const state = getState(id);
+  const text = `Issue ${id}: ${issue.title}\nStatus: ${state.status}\nFeedback: ${state.notes || '(none)'}`;
+  navigator.clipboard.writeText(text).then(() => alert('Feedback copied!')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); alert('Feedback copied!');
+  });
+}
+
+// Month tabs
+let currentMonth = 'March 2026';
+function renderTabs() {
+  const tabs = document.getElementById('monthTabs');
+  tabs.innerHTML = Object.keys(contentCalendar).map(m =>
+    `<div class="tab ${m === currentMonth ? 'active' : ''}" onclick="switchMonth('${m}')">${m}</div>`
+  ).join('');
+}
+function switchMonth(month) {
+  currentMonth = month;
+  renderTabs();
+  renderIssues(month);
+}
+
+renderTabs();
+renderIssues(currentMonth);
+</script>
+</body>
+</html>
